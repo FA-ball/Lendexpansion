@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <QuestScriptDef>
+    <defName>FA_BALL_LendColonist_test</defName>
+    <rootSelectionWeight>5</rootSelectionWeight>
+    <expireDaysRange>4~8</expireDaysRange>
+
+    <!-- ========== 任务名称规则（中文） ========== -->
+    <questNameRules>
+      <rulesStrings>
+        <li>questName->外包[worker]（出借拓展）</li>
+        <li>questName->契约[worker]（出借拓展）</li>
+        <li>questName->临时工（出借拓展）</li>
+        <li>questName->[worker]借调（出借拓展）</li>
+        <li>questName->[asker_faction_name]的[worker]供应（出借拓展）</li>
+        <li>questName->临时的[worker]（出借拓展）</li>
+        <li>questName->[worker]委托（出借拓展）</li>
+        <li>worker->殖民者</li>
+        <li>worker->工人</li>
+        <li>worker->苦力</li>
+        <li>worker->帮手</li>
+      </rulesStrings>
+    </questNameRules>
+
+    <!-- ========== 任务描述规则（中文） ========== -->
+    <questDescriptionRules>
+      <rulesStrings>
+        <!-- 发布者为派系领袖 -->
+        <li>questDescription(asker_factionLeader==True)->“我们这有个轻松的好活，需要你借一两个人过来，最好是漂亮的美少女，我们会多付点钱的...嘿嘿...吸溜（咽口水）”\n\n[asker_faction_name]的[asker_faction_leaderTitle][asker_nameFull]声称他们需要人手帮忙[dutyDescription]。\n\n[asker_pronoun]请求你将[colonistCountToLend]借给[asker_objective][lendForDays]天。不过有些奇怪的是，[asker_pronoun]强烈要求送过来的殖民者最好是女性，而且提供的报酬格外的慷慨。\n\n在挂断通讯之前，你隐约听到对面传来了一些嘈杂的声音：\n\n“老大，还没联系好吗，兄弟们好久没开荤了，都快憋不住了！...快叫他们送一两个小婊子来给兄弟们泻泻火！...”\n\n（注意：该任务没有限制性别，但是没有写男性出借的文本，请不要送男人过去）\n\n[willSendShuttle]</li>
+        
+        <!-- 发布者为皇室成员 -->
+        <li>questDescription(asker_royalInCurrentFaction==True)->“听说你那的美少女又多又漂亮，让她们今晚过来一两个帮我干点轻松的小事吧，放心，不会少你的报酬的。”\n\n[asker_faction_name]的[asker_royalTitleInCurrentFaction][asker_nameFull]声称他们需要一些人手来帮忙[dutyRoyalDescription]。\n\n[asker_pronoun]正要求你将[colonistCountToLend]派遣去为[asker_objective]服务[lendForDays]天。不过有些奇怪的是，[asker_pronoun]强烈要求送过来的殖民者最好是女性，而且提供的报酬格外的慷慨。\n\n在挂断通讯之前，你隐约听到对面传来了一些含糊的声音：\n\n“哼哼，又有新的玩具可以玩了，这次玩点什么花样呢？”\n\n（注意：该任务没有限制性别，但是没有写男性出借的文本，请不要送男人过去）\n\n[willSendShuttle]</li>
+
+        <li>disease->流感</li>
+        <li>disease->瘟疫</li>
+        <li>disease->疟疾</li>
+        <li>disease->伤口感染</li>
+        
+        <li>colonistCountToLend(colonistsToLendCount==1)->一位[minAgeOrOlder]殖民者</li>
+        <li>colonistCountToLend(colonistsToLendCount>1)->[colonistsToLendCount]位[minAgeOrOlder]殖民者</li>
+        <li>willSendShuttle->[asker_pronoun]将会派出穿梭机来接[colonists]。</li>
+        <li>colonists(colonistsToLendCount==1)->殖民者</li>
+        <li>colonists(colonistsToLendCount>1)->殖民者</li>
+        <li>minAgeOrOlder(minAge==0)-></li>
+        <li>minAgeOrOlder(minAge>0)->[minAge]岁或更年长的</li>
+        <li>pawnListHaveConjugation(colonistsToLendCount==1)->已经</li>
+        <li>pawnListHaveConjugation(colonistsToLendCount>1)->已经</li>
+      </rulesStrings>
+    </questDescriptionRules>
+
+    <root Class="QuestNode_Sequence">
+      <nodes>
+        <li Class="QuestNode_SubScript">
+          <def>Util_RandomizePointsChallengeRating</def>
+        </li>
+
+        <li Class="QuestNode_GetRandomInRangeForChallengeRating">
+          <storeAs>colonyPercentageToLend</storeAs>
+          <oneStarRange>0.0~0.35</oneStarRange>
+          <twoStarRange>0.36~0.6</twoStarRange>
+          <threeStarRange>0.61~0.75</threeStarRange>
+        </li>
+
+        <li Class="QuestNode_ExpansionActive">
+          <modID>Ludeon.RimWorld.Biotech</modID>
+          <node Class="QuestNode_Set">
+            <name>minAge</name>
+            <value>13</value>
+          </node>
+          <elseNode Class="QuestNode_Set">
+            <name>minAge</name>
+            <value>0</value>
+          </elseNode>
+        </li>
+
+        <!-- 修改：人数计算节点，现在只需要至少1名空闲殖民者即可 -->
+        <li Class="QuestNode_GetColonistCountFromColonyPercentage">
+          <storeAs>colonistsToLendCount</storeAs>
+          <colonyPercentage>$colonyPercentageToLend</colonyPercentage>
+          <mustHaveFreeColonistsAvailableCount>1</mustHaveFreeColonistsAvailableCount>
+          <minAge>$minAge</minAge>
+        </li>
+
+        <!-- 新增：强制将人数锁定为1 -->
+        <li Class="QuestNode_Set">
+          <name>colonistsToLendCount</name>
+          <value>1</value>
+        </li>
+
+        <li Class="QuestNode_GetMap">
+          <preferMapWithMinFreeColonists>$colonistsToLendCount</preferMapWithMinFreeColonists>
+        </li>
+
+        <li Class="QuestNode_End">
+          <inSignal>map.MapRemoved</inSignal>
+          <outcome>Fail</outcome>
+          <signalListenMode>NotYetAcceptedOnly</signalListenMode>
+        </li>
+
+        <!-- 选择发布者类型，并设置 isRoyal 变量 -->
+        <li Class="QuestNode_RandomNode">
+          <nodes>
+            <!-- 派系领袖分支：isRoyal = 2 -->
+            <li Class="QuestNode_Sequence">
+              <selectionWeight>0.5</selectionWeight>
+              <nodes>
+                <li Class="QuestNode_GetPawn">
+                  <storeAs>asker</storeAs>
+                  <mustBeFactionLeader>true</mustBeFactionLeader>
+                  <allowPermanentEnemyFaction>false</allowPermanentEnemyFaction>
+                  <minTechLevel>Industrial</minTechLevel>
+                  <hostileWeight>0.15</hostileWeight>
+                </li>
+                <li Class="QuestNode_ResolveTextNow">
+                  <root>dutyDescription</root>
+                  <storeAs>dutyDescription</storeAs>
+                  <rules TKey="DutyRulesAny">
+                    <rulesStrings>
+                      <li>dutyDescription->收获庄稼</li>
+                      <li>dutyDescription->加固城防</li>
+                      <li>dutyDescription->建立定居点</li>
+                      <li>dutyDescription->戒备袭击者</li>
+                      <li>dutyDescription->建立医院</li>
+                      <li>dutyDescription->控制[disease]疫情爆发</li>
+                    </rulesStrings>
+                  </rules>
+                </li>
+                <li Class="QuestNode_Set">
+                  <name>isRoyal</name>
+                  <value>2</value>
+                </li>
+              </nodes>
+            </li>
+
+            <!-- 皇室分支：isRoyal = 1 -->
+            <li Class="QuestNode_Sequence">
+              <selectionWeight>0.5</selectionWeight>
+              <nodes>
+                <li Class="QuestNode_GetPawn">
+                  <storeAs>asker</storeAs>
+                  <canGeneratePawn>true</canGeneratePawn>
+                  <allowPermanentEnemyFaction>false</allowPermanentEnemyFaction>
+                  <mustHaveRoyalTitleInCurrentFaction>true</mustHaveRoyalTitleInCurrentFaction>
+                  <seniorityRange>250~850</seniorityRange>
+                  <minTechLevel>Industrial</minTechLevel>
+                  <hostileWeight>0.15</hostileWeight>
+                </li>
+                <li Class="QuestNode_ResolveTextNow">
+                  <root>dutyRoyalDescription</root>
+                  <storeAs>dutyRoyalDescription</storeAs>
+                  <rules TKey="DutyRulesRoyal">
+                    <rulesStrings>
+                      <li>dutyRoyalDescription->准备仪式</li>
+                      <li>dutyRoyalDescription->与部落谈判</li>
+                      <li>dutyRoyalDescription->探索沼泽</li>
+                      <li>dutyRoyalDescription->翻译一本书</li>
+                      <li>dutyRoyalDescription->布置训练场</li>
+                      <li>dutyRoyalDescription->收获作物</li>
+                    </rulesStrings>
+                  </rules>
+                </li>
+                <li Class="QuestNode_Set">
+                  <name>isRoyal</name>
+                  <value>1</value>
+                </li>
+              </nodes>
+            </li>
+          </nodes>
+        </li>
+
+        <li Class="QuestNode_GetRandomInRangeForChallengeRating">
+          <storeAs>lendForDays</storeAs>
+          <oneStarRange>1</oneStarRange>
+          <twoStarRange>1</twoStarRange>
+          <threeStarRange>1</threeStarRange>
+          <roundRandom>true</roundRandom>
+        </li>
+
+        <li Class="QuestNode_EvaluateSimpleCurve">
+          <value>$($colonistsToLendCount*$lendForDays)</value>
+          <storeAs>rewardValue</storeAs>
+          <curve>
+            <points>
+              <li>500, 1500</li>
+              <li>2000, 5000</li>
+              <li>6000, 10000</li>
+            </points>
+          </curve>
+        </li>
+
+        <!-- ================= 穿梭机阶段（降落） ================= -->
+        <li Class="QuestNode_ShuttleDelay">
+          <delayTicks>3500</delayTicks>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <!-- 故事变体生成：三个分支权重相等 -->
+              <li Class="QuestNode_RandomNode">
+                <nodes>
+                  <li Class="QuestNode_Sequence">
+                    <selectionWeight>1</selectionWeight>
+                    <nodes>
+                      <li Class="QuestNode_Set">
+                        <name>storyVariant</name>
+                        <value>0</value>
+                      </li>
+                    </nodes>
+                  </li>
+                  <li Class="QuestNode_Sequence">
+                    <selectionWeight>1</selectionWeight>
+                    <nodes>
+                      <li Class="QuestNode_Set">
+                        <name>storyVariant</name>
+                        <value>1</value>
+                      </li>
+                    </nodes>
+                  </li>
+                  <li Class="QuestNode_Sequence">
+                    <selectionWeight>1</selectionWeight>
+                    <nodes>
+                      <li Class="QuestNode_Set">
+                        <name>storyVariant</name>
+                        <value>2</value>
+                      </li>
+                    </nodes>
+                  </li>
+                </nodes>
+              </li>
+
+              <li Class="QuestNode_SubScript">
+                <def>Util_TransportShip_Pickup</def>
+                <parms>
+                  <leaveDelayTicks>60000</leaveDelayTicks>
+                  <leaveImmediatelyWhenSatisfied>true</leaveImmediatelyWhenSatisfied>
+                  <acceptColonists>true</acceptColonists>
+                  <acceptChildren>false</acceptChildren>
+                  <onlyAcceptColonists>true</onlyAcceptColonists>
+                  <onlyAcceptHealthy>false</onlyAcceptHealthy>
+                  <requireColonistCount>$colonistsToLendCount</requireColonistCount>
+                  <minAge>$minAge</minAge>
+                </parms>
+              </li>
+
+              <!-- 穿梭机抵达信件（降落） -->
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>0</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>一架标记着[asker_faction_name]皇家纹章的穿梭机缓缓降落，舱门打开后，几位衣着考究的侍从从中走了出来，态度恭敬地迎接了你和你的殖民者。但你敏锐地注意到，他们眼神中带着某种难以掩饰的期待。当他们聚在一起时，彼此之间总是在窃窃私语，说着类似“这个人就是奖励”“多谢大人的恩赐”“真是难得的福利”之类的话语。然而，每当你凑近时，他们却立即闭口不再谈论那些事情，只是态度良好地询问你还需要什么帮助。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>来自[asker_faction_name]的穿梭机来接殖民者了。不过不知为何，你似乎觉得穿梭机驾驶员的笑容格外猥琐。他给你递了一支烟，看着殖民地的少女们，淫笑着对你说道：“快点把人带过来吧，兄弟们都快等不及要……咳咳……”在你疑惑的眼神中，说到一半的驾驶员被一旁的同伴用手肘顶了一下，他似乎意识到了什么，乖乖闭口不再与你交谈。整个人就这么依靠在穿梭机上，用那双闪着淫光的眼睛不断扫视着路过少女们凹凸有致的娇躯。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </elseNode>
+                </node>
+              </li>
+
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>1</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>一艘装饰华丽的[asker_faction_name]穿梭机缓缓降落在殖民地，随行的皇家卫兵从舱门涌出，在门口的两侧肃穆而立。你注意到机舱内部铺着昂贵的地毯，穿梭机的角落里还有一个私密的豪华隔间。似乎有什么了不得的大人物亲自来到了你的殖民地。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>[asker_faction_name]的穿梭机降落了，驾驶员看起来很专业。但你注意到穿梭机内部好像经过改装，空出来的几张座位之下都有一些奇怪的装备，似乎能从座椅的正下方探出什么东西一样。当你向驾驶员询问时，那个仿佛知无不言的驾驶员却打起了哈哈，只说这是某种新型的按摩设备。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </elseNode>
+                </node>
+              </li>
+
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>2</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>一架最新型号的[asker_faction_name]豪华穿梭机停在殖民地的空地上，皇家飞行员非常客气地迎接了你和你的殖民者，但眼神中透露出某种难以言说的情绪。你注意到一个穿着管家服的男人从机舱中走了出来，他自称是为势力首领服务的贴身管家。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>穿梭机抵达</label>
+                    <text>一架[asker_faction_name]的民用穿梭机平稳降落，驾驶员友好地挥手致意。你听说他们的殖民地中有一个非常不错的酒吧，去过的男性客人都对这个酒吧赞不绝口。听说里面的服务员都很专业而且负责，不过你短时间抽不开身，无缘前去拜访了。</text>
+                    <lookTargets>$pickupShipThing</lookTargets>
+                  </elseNode>
+                </node>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <!-- 穿梭机信号处理（保持不变） -->
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.Destroyed</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>穿梭机被摧毁</label>
+                <text>[asker_faction_name]被派来接殖民者的穿梭机被摧毁了。</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.LeftBehind</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>穿梭机被遗弃</label>
+                <text>[asker_faction_name]被派来接殖民者的穿梭机被遗弃了。</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <!-- ================= 殖民者启程信件（出发） ================= -->
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.SentSatisfied</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <!-- 第一步：执行借出，殖民者登机 -->
+              <li Class="QuestNode_LendColonistsToFaction">
+                <shuttle>$pickupShipThing</shuttle>
+                <lendColonistsToFactionOf>$asker</lendColonistsToFactionOf>
+                <returnLentColonistsInTicks>$($lendForDays*60000)</returnLentColonistsInTicks>
+                <outSignalComplete>ColonistsReturned</outSignalComplete>
+                <outSignalColonistsDied>ColonistsDied</outSignalColonistsDied>
+              </li>
+
+              <!-- 第二步：延迟一小段时间后发送出发信件（确保借出完成） -->
+              <li Class="QuestNode_Delay">
+                <delayTicks>200</delayTicks>
+                <node Class="QuestNode_Sequence">
+                  <nodes>
+                    <!-- storyVariant == 0 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>0</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>穿梭机缓缓升空，透过舷窗你能看到你派出的那位殖民者被侍从们缓缓包围。一位侍从给这位殖民者拿来了一套衣服，虽然你看不清衣服的具体样式，但能看见少女的小脸刷地一下变得通红，并止不住地摇头。不过，在一位侍从说了什么之后，少女眼泪汪汪地与你对视了一眼，最终还是点头同意了。你刚想说什么，穿梭机的引擎便喷出了巨大的火焰，推动着机身和其中的殖民者消失在空中。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>穿梭机启动了引擎，你派出的那位殖民者缓缓走进了机舱。你听到舱内传来一阵轻浮的口哨声。当殖民者经过一位驾驶员身边时，随着一声清脆的“啪”，你看见她的翘臀不住地颤抖着，白皙娇嫩的臀肉之上荡漾起一圈圈肉浪，似乎有人在她那对浑圆的肉臀上拍了一巴掌。随着穿梭机的大门缓缓合上，你隐约看见你的殖民者一脸娇羞地转过身去想要抗议，却被那位轻浮的驾驶员强行拉着小手坐到了他的身旁。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+
+                    <!-- storyVariant == 1 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>1</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>派出的那位殖民者在登机之后就被直接带进了隔间之中。还没等你多说一句话，卫兵们便鱼贯而入，挡住了你的视线。在穿梭机起飞消失在云层中之前，透过舷窗的玻璃，你似乎看见在豪华隔间之中，你的殖民者被粗暴地按在了玻璃上，绝美的小脸绯红得要滴出水来。似乎还有一个肥腻的身影站在她的身后，用一双大手在她娇嫩的躯体之上来回滑动抚摸着。你揉了揉眼睛，却发现舷窗的窗帘已经被人拉上，只能隐约看见两个身影纠缠在一起。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>舱门关闭前，你看到你派出的那位殖民者打量着那些改装过的设备。当她看清坐垫中的东西是什么之后，小脸一红，想要换个座位。不过驾驶员却坚称没有其他的座位，并强行把她按在了座位之上。在一阵嗡嗡声后，座位底部的装置开始启动，将什么东西往上用力地一顶。在飞船离开的瞬间，你从舷窗之中瞟到你的殖民者，刚刚还剧烈挣扎的殖民者此时已经浑身酥软地瘫倒在座位之上，小腹之中似乎有什么东西有节奏地顶来顶去。不过片刻之后，穿梭机便消失在云层之中。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+
+                    <!-- storyVariant == 2 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>2</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>穿梭机优雅地起飞，机组人员对你派出的那位殖民者彬彬有礼。在舱门关上之前，你注意到那个穿得像管家一样的机组成员向你的殖民者递过去一串略大的珠子，然后比划了一下，殖民者的小脸顿时如同火烧一般红了起来。不过管家似乎要求得非常坚决。透过舷窗的玻璃，满脸娇羞的殖民者看了看你，不过你也不知道他们究竟在做什么，只能微笑着点了点头。殖民者叹了口气，无可奈何地将手中的珠子拿起，走进了穿梭机卫生间，再出来的时候，珠串已经消失不见，不知道被放在了哪里。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>殖民者已启程</label>
+                          <text>你目送着你派出的那位殖民者轻松地登上飞船，似乎是一次普通的出差。在飞船升空之后，你发现一张名片掉在了停机坪上，上面写着：“XXX酒吧，给你最美好的回忆”。背面则是一个衣着暴露的兔女郎，以极其色情的姿势蹲在地上，食指和大拇指圈成了一个圈，放在自己的樱桃小嘴前，似乎在暗示着什么。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+                  </nodes>
+                </node>
+              </li>
+
+              <!-- ========== 中途通讯信件 ========== -->
+              <li Class="QuestNode_Delay">
+                <delayTicks>$(randInt(15000, 18000))</delayTicks>
+                <node Class="QuestNode_Sequence">
+                  <nodes>
+                    <!-- storyVariant == 0 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>0</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>你派出的那位殖民者发来一条简短的文字通讯：“我们已经抵达，这里的侍从们非常热情。”过了一会儿，一张图片被发送过来，你的殖民者穿着一身极其暴露的轻纱礼服，白丝小脚踩着一双透明的玻璃高跟鞋，笑着站在一群侍从之中。微微放大照片，你看见少女的高跟鞋中似乎存在着某种粘稠的白色液体，身上也多了一些轻微的红肿。一位侍从的黝黑大手更是消失在了少女的裙摆之后，配合殖民者脸庞之上的红晕，显得十分可疑。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>通讯接通了，但是对面似乎并不是你派出的那位殖民者。一个粗犷的声音响起：“你的殖民者？她和我的兄弟们玩得很开心呢。不好意思，她暂时不方便接电话。嗯，对，你放心吧，我们这儿的伙食极好，保证把你的殖民者‘喂’得饱饱的，哈哈哈哈！”在发出一阵爽朗的笑声之后，无论你如何呼叫，那边都再也没有回复，只是从话筒中隐约传来连绵不断的肉体碰撞的啪啪声，以及少女娇媚的呻吟。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+
+                    <!-- storyVariant == 1 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>1</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>通讯器突然响起，你派出的那位殖民者声音有些颤抖：“嗯啊啊……我……没事……啊❤~（求求你轻一点，他还听着呢……）……这里挺好的……食物……（小嘴之中忽然被塞进了什么东西）……吸溜……吸溜……咕嘟（‘啵叽’一声吐出了什么东西）……也很好吃（谢谢款待，嗯，全咽下去了……）……哪位大人也……咕啊……非常的友善（啊……主人别顶了要去了！）……噫啊啊啊……就这样我先挂了……噫啊啊啊（去……去了啊啊啊）。”</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>在你派出的那位殖民者离开之后，你偶然从[asker_faction_name]那里接收到一段意义不明的记录数据：“前端注射：47次，后端注射：21次，总计注入：802ML，总计高潮：156次，综合评价：S+。”当你发信息询问这是什么意思时，那边的回复是你的殖民者在帮忙测试最新型的机械设备，一不小心把实验数据发过来了，让你不要太在意。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+
+                    <!-- storyVariant == 2 -->
+                    <li Class="QuestNode_Equal">
+                      <value1>$storyVariant</value1>
+                      <value2>2</value2>
+                      <node Class="QuestNode_Equal">
+                        <value1>$isRoyal</value1>
+                        <value2>1</value2>
+                        <node Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>你派出的那位殖民者从[asker_faction_name]寄来了一个包裹，你小心翼翼地拆开了包裹，却发现里面只有一条黑丝裤袜。你笑着放下了丝袜，以为这只是一个恶作剧。在你没有发现的地方，那条丝袜的裆部似乎被粗暴地撕破了，破损的边缘处还沾着一些奇怪的白浊液体。如果你凑近闻一下，还能闻到一股浓郁的石楠花气味。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </node>
+                        <elseNode Class="QuestNode_Letter">
+                          <label>来自[asker_faction_name]的通讯</label>
+                          <text>[asker_faction_name]发来一叠照片，照片似乎是在一个酒吧里面拍摄的。第一张照片是你派出的那位殖民者身穿一身诱人的黑丝兔女郎，正为顾客送去装满啤酒的酒杯；第二张照片是你的兔女郎殖民者被夹在两个壮汉之间，满脸红晕地举着一个玻璃杯痛饮着啤酒，左边壮汉的大手顺着少女的渔网黑丝长腿消失在了桌子底下，不知道在做些什么；第三张照片则是一片模糊，似乎没有对准焦，只能隐隐约约看见一位少女面对面骑在一个男人的身上，正抬起自己的肥硕翘臀不断地在男人的身上起伏着。你觉得这个人有些眼熟，但是却不能确定。</text>
+                          <letterDef>NeutralEvent</letterDef>
+                        </elseNode>
+                      </node>
+                    </li>
+                  </nodes>
+                </node>
+              </li>
+
+              <li Class="QuestNode_Delay">
+                <delayTicks>$(randInt(300,600))</delayTicks>
+                <node Class="QuestNode_Sequence">
+                  <nodes>
+                    <li Class="QuestNode_GiveRewards">
+                      <parms>
+                        <allowGoodwill>true</allowGoodwill>
+                        <allowRoyalFavor>true</allowRoyalFavor>
+                      </parms>
+                    </li>
+                  </nodes>
+                </node>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <!-- ================= 殖民者返回阶段 ================= -->
+        <li Class="QuestNode_Signal">
+          <inSignal>ColonistsReturned</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <!-- storyVariant == 0 -->
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>0</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}在帮助[asker_faction_name]的皇室成员完成任务之后返回了。她看起来有些疲惫，脸颊泛着不自然的红晕，小腹微微隆起，似乎灌满了什么粘稠的液体。不过她却不愿多谈任务细节，问及时总会下意识地避开你的眼睛。</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}在帮助[asker_faction_name]的领袖顺利完成任务后返回了殖民地。不过奇怪的是，下穿梭机的时候，她捂住了自己的小腹，一瘸一拐地走下了穿梭机。那双修长的美腿紧紧地夹在一起，似乎在竭力避免着什么东西漏出来。</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </elseNode>
+                </node>
+              </li>
+
+              <!-- storyVariant == 1 -->
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>1</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}完成了[asker_faction_name]的皇室成员交代的任务，顺利地从皇宫中返回了。不过她回来之后看见你总是小脸一红，问及这次任务细节也下意识地捂住自己的腹部，闭口不谈在皇宫之中发生了什么。</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}顺利完成了对[asker_faction_name]的支援。奇怪的是，从那之后，她似乎对于机械有了某种阴影，一听到机械的液压杆的声音就会下意识地捂住自己的小腹，娇嫩的小脸上莫名其妙地挂上一片羞红，不知道想起了什么事情。</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </elseNode>
+                </node>
+              </li>
+
+              <!-- storyVariant == 2 -->
+              <li Class="QuestNode_Equal">
+                <value1>$storyVariant</value1>
+                <value2>2</value2>
+                <node Class="QuestNode_Equal">
+                  <value1>$isRoyal</value1>
+                  <value2>1</value2>
+                  <node Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}在帮助[asker_faction_name]的皇室成员后返回。不过奇怪的是，不知为何她换上了一条崭新的黑丝，而且在下机的时候用小手捂住自己的臀部，似乎里面塞了什么东西一样。布满奇怪红痕的脖子上还戴着一个狗项圈，单薄黑丝之下隐约能看见膝盖微微红肿。虽然你亲自来迎接，但是{PAWNS}似乎连问候都来不及说，就急匆匆地双腿颤抖着一步一步挪回了自己的房间。送她回来的机组人员则是笑嘻嘻地对你说：“那些东西就当作礼物了，那位大人称赞她是不错的...”他淫笑着学着狗的样子叫了两句，然后便操纵着穿梭机离开了，只留下了一脸茫然的你。</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </node>
+                  <elseNode Class="QuestNode_Letter">
+                    <label>殖民者返回</label>
+                    <text>{PAWNS}顺利地回到了殖民地，整个[asker_faction_name]穿梭机上包括驾驶员在内的所有人都喝得有些醉醺醺的，没有出意外真是个奇迹。不过{PAWNS}带回了一笔可观的额外小费（仅文本），只是不知道为何这些纸币是夹在她的腿环内侧带回来的，还带着一股浓郁的石楠花气息，能有一笔额外的收入确实是不错的事情...对吗？</text>
+                    <letterDef>PositiveEvent</letterDef>
+                  </elseNode>
+                </node>
+              </li>
+
+              <li Class="QuestNode_End">
+                <outcome>Success</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <!-- 殖民者遇难 -->
+        <li Class="QuestNode_Signal">
+          <inSignal>ColonistsDied</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>殖民者遇难</label>
+                <text>借出的殖民者遇难了……[asker_faction_name]发来一段道歉视频，但他们的表情似乎并不悲伤。</text>
+                <letterDef>NegativeEvent</letterDef>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Success</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.SentUnsatisfied</inSignal>
+          <node Class="QuestNode_End">
+            <outcome>Fail</outcome>
+          </node>
+        </li>
+      </nodes>
+    </root>
+  </QuestScriptDef>
+</Defs>
