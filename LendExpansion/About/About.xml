@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>出借拓展任务包V2.0 </name>
+  <author>HWS重装形态神圣完美铁球</author>
+  <packageId>FAironball.Lendexpansion</packageId>
+  <description>隐奸风格的出借任务拓展包，经过了大量更新，具体流程为随机发出带有（出借拓展后缀的任务），然后接取任务即可，任务完成后有概率怀孕，大部分数值和概率相关的都在MOD设置里面可以调整。</description>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+    </li>
+    <li>
+      <packageId>Ludeon.RimWorld.Royalty</packageId>
+      <displayName>Royalty</displayName>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>brrainz.harmony</li>
+  </loadAfter>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+</ModMetaData>
